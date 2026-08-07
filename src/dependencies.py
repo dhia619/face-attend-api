@@ -2,7 +2,7 @@ from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from src.auth.security import decode_access_token
 from src.database import get_db
-from src.user.repository import get_user_by_id
+from src.users.repository import get_user_by_id
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 

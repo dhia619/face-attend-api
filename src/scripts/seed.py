@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.auth.security import hash_password
 from src.config import get_settings
 from src.database import db_session, engine
-from src.user.models import User
+from src.users.models import User
 from src.rbac.models import Role, Permission, RolePermission
 from src.rbac.constants import PermissionCode, RoleName
 from src.core.logging import setup_logging

@@ -4,7 +4,7 @@ from fastapi import status
 
 from src.auth.security import verify_password, create_access_token, create_refresh_token
 from src.auth.constants import ErrorMessage
-from src.user.repository import get_user_by_email
+from src.users.repository import get_user_by_email
 
 async def authenticate_user(db: AsyncSession, email: str, password: str) -> dict[str, str] | None:
     user = await get_user_by_email(db, email)
