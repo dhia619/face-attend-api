@@ -19,6 +19,8 @@ settings = get_settings()
 PERMISSIONS = (
     PermissionCode.USERS_READ,
     PermissionCode.USERS_WRITE,
+    PermissionCode.DEPARTMENT_READ,
+    PermissionCode.DEPARTMENT_WRITE,
     PermissionCode.EMPLOYEES_READ,
     PermissionCode.EMPLOYEES_WRITE,
     PermissionCode.ATTENDANCE_READ,
@@ -31,17 +33,7 @@ PERMISSIONS = (
 ROLES = [
     {
         "name": RoleName.SUPER_ADMIN,
-        "permissions": [
-            PermissionCode.USERS_READ,
-            PermissionCode.USERS_WRITE,
-            PermissionCode.EMPLOYEES_READ,
-            PermissionCode.EMPLOYEES_WRITE,
-            PermissionCode.ATTENDANCE_READ,
-            PermissionCode.ATTENDANCE_WRITE,
-            PermissionCode.DEVICES_READ,
-            PermissionCode.DEVICES_WRITE,
-            PermissionCode.REPORTS_READ,
-        ]
+        "permissions": PERMISSIONS
     },
 ]
 
@@ -65,30 +57,66 @@ async def seed_permissions(db: AsyncSession) -> dict[str, Permission]:
     return {p.code: p.id for p in result.scalars().all()}
 
 
-async def seed_roles(db: AsyncSession, permissions: dict[str, Permission]) -> dict[str, Role]:
+async def seed_roles(
+    db: AsyncSession,
+    permissions: dict[str, int],
+) -> dict[str, int]:
     """Insert roles and wire their permissions if they don't exist."""
     result = await db.execute(select(Role))
-    existing = [r.name for r in result.scalars().all()]
+    roles_by_name = {
+        role.name: role
+        for role in result.scalars().all()
+    }
 
     for role_data in ROLES:
-        if role_data["name"] not in existing:
-            role = Role(name=role_data["name"])
+        role_name = role_data["name"]
+
+        role = roles_by_name.get(role_name)
+
+        if role is None:
+            role = Role(name=role_name)
             db.add(role)
             await db.flush()
 
-            for code in role_data["permissions"]:
-                permission_id = permissions.get(code)
-                if permission_id:
-                    db.add(RolePermission(role_id=role.id, permission_id=permission_id))
-
-            logger.info(f"Created role: {role_data['name']}")
+            roles_by_name[role_name] = role
+            logger.info(f"Created role: {role_name}")
         else:
-            logger.info(f"Role already exists, skipping: {role_data['name']}")
+            logger.info(f"Role already exists: {role_name}")
+
+        result = await db.execute(
+            select(RolePermission.permission_id)
+            .where(RolePermission.role_id == role.id)
+        )
+
+        existing_permission_ids = set(result.scalars().all())
+
+        for code in role_data["permissions"]:
+            permission_id = permissions.get(code)
+
+            if permission_id is None:
+                logger.warning(
+                    f"Permission not found: {code}"
+                )
+                continue
+
+            if permission_id not in existing_permission_ids:
+                db.add(
+                    RolePermission(
+                        role_id=role.id,
+                        permission_id=permission_id,
+                    )
+                )
+
+                logger.info(
+                    f"Assigned permission {code} to role {role_name}"
+                )
 
     await db.flush()
 
-    result = await db.execute(select(Role))
-    return {r.name: r.id for r in result.scalars().all()}
+    return {
+        name: role.id
+        for name, role in roles_by_name.items()
+    }
 
 
 async def seed_super_admin(db: AsyncSession, roles: dict[str, Role]) -> None:

@@ -8,9 +8,9 @@ from src.users.models import User
 from src.rbac.dependencies import require_permission
 from src.rbac.constants import PermissionCode
 
-employees_router = APIRouter()
+employee_router = APIRouter()
 
-@employees_router.get("", response_model=list[EmployeeResponse])
+@employee_router.get("", response_model=list[EmployeeResponse])
 async def list_employees(
     session: AsyncSession = Depends(get_db),
     user: User = Depends(require_permission(PermissionCode.EMPLOYEES_READ))
@@ -18,7 +18,7 @@ async def list_employees(
     return await service.get_employees(db=session)
 
 
-@employees_router.get("/{employee_id}", response_model=EmployeeResponse)
+@employee_router.get("/{employee_id}", response_model=EmployeeResponse)
 async def get_employee(
     employee_id: int,
     session: AsyncSession = Depends(get_db),
@@ -27,7 +27,7 @@ async def get_employee(
     return await service.get_employee_by_id(db=session, employee_id=employee_id)
 
 
-@employees_router.post(
+@employee_router.post(
     "", 
     response_model=EmployeeResponse, 
     status_code=status.HTTP_201_CREATED
@@ -43,7 +43,7 @@ async def create_employee(
     )
 
 
-@employees_router.patch("/{employee_id}", response_model=EmployeeResponse)
+@employee_router.patch("/{employee_id}", response_model=EmployeeResponse)
 async def update_employee(
     employee_id: int,
     employee_data: UpdateEmployee,
@@ -57,7 +57,7 @@ async def update_employee(
     )
 
 
-@employees_router.delete("/{employee_id}", status_code=status.HTTP_204_NO_CONTENT)
+@employee_router.delete("/{employee_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_employee(
     employee_id: int,
     session: AsyncSession = Depends(get_db),

@@ -4,6 +4,8 @@ class PermissionCode:
     USERS_WRITE = "users:write"
     EMPLOYEES_READ = "employees:read"
     EMPLOYEES_WRITE = "employees:write"
+    DEPARTMENT_READ = "departments:read"
+    DEPARTMENT_WRITE = "departments:write"
     ATTENDANCE_READ = "attendance:read"
     ATTENDANCE_WRITE = "attendance:write"
     DEVICES_READ = "devices:read"

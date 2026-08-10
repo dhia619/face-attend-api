@@ -2,11 +2,11 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.models import *
 from src.config import get_settings
 from src.database import engine
 from src.auth.router import auth_router
-from src.employees.router import employees_router
+from src.employees.router import employee_router
+from src.departments.router import department_router
 from src.core.logging import setup_logging
 
 settings = get_settings()
@@ -41,7 +41,13 @@ app.include_router(
 )
 
 app.include_router(
-    router=employees_router,
+    router=employee_router,
     prefix=f"{settings.BASE_API_PATH}/employees",
     tags=["Employees"]
+)
+
+app.include_router(
+    router=department_router,
+    prefix=f"{settings.BASE_API_PATH}/departments",
+    tags=["Departments"]
 )
