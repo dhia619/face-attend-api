@@ -24,3 +24,6 @@ PERMISSION_META = {
 
 class RoleName:
     SUPER_ADMIN = "super_admin"
+
+class ErrorMessage:
+    INSUFFICIENT_PERMISSION = "Insufficient permissions."
