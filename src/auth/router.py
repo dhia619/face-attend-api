@@ -5,7 +5,7 @@ from src.auth.schemas import LoginRequest, TokenResponse
 from src.auth.service import authenticate_user
 from src.database import get_db
 
-auth_router = APIRouter(prefix="/api/v1/auth")
+auth_router = APIRouter()
 
 @auth_router.post("/login", response_model=TokenResponse)
 async def login(
