@@ -6,6 +6,7 @@ from src.config import get_settings
 from src.database import engine
 from src.auth.router import auth_router
 from src.employees.router import employee_router
+from src.rbac.router import rbac_router
 from src.departments.router import department_router
 from src.core.logging import setup_logging
 
@@ -50,4 +51,10 @@ app.include_router(
     router=department_router,
     prefix=f"{settings.BASE_API_PATH}/departments",
     tags=["Departments"]
+)
+
+app.include_router(
+    router=rbac_router,
+    prefix=f"{settings.BASE_API_PATH}/rbac",
+    tags=["RBAC"]
 )

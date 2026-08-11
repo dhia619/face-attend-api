@@ -19,6 +19,9 @@ settings = get_settings()
 PERMISSIONS = (
     PermissionCode.USERS_READ,
     PermissionCode.USERS_WRITE,
+    PermissionCode.ROLE_READ,
+    PermissionCode.ROLE_WRITE,
+    PermissionCode.PERMISSION_READ,
     PermissionCode.DEPARTMENT_READ,
     PermissionCode.DEPARTMENT_WRITE,
     PermissionCode.EMPLOYEES_READ,

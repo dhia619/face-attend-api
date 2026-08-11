@@ -18,8 +18,24 @@ class Permission(SQLAlchemyBase):
 class RolePermission(SQLAlchemyBase):
     __tablename__ = "role_permission"
 
-    role_id = Column(Integer, ForeignKey("role.id"), primary_key=True)
-    permission_id = Column(Integer, ForeignKey("permission.id"), primary_key=True)
+    role_id = Column(
+        Integer, 
+        ForeignKey(
+            "role.id",
+            ondelete="CASCADE",
+            onupdate="CASCADE"
+        ), 
+        primary_key=True
+    )
+    permission_id = Column(
+        Integer, 
+        ForeignKey(
+            "permission.id",
+            ondelete="CASCADE",
+            onupdate="CASCADE"
+        ),
+        primary_key=True
+    )
 
     role = relationship("Role")
     permission = relationship("Permission")
