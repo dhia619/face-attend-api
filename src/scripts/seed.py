@@ -4,7 +4,7 @@ import logging
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.auth.security import hash_password
+from src.auth.security import hash_secret
 from src.config import get_settings
 from src.database import db_session, engine
 from src.users.models import User
@@ -136,7 +136,7 @@ async def seed_super_admin(db: AsyncSession, roles: dict[str, Role]) -> None:
     admin = User(
         full_name="Super Admin",
         email=settings.FIRST_ADMIN_EMAIL,
-        password_hash=hash_password(settings.FIRST_ADMIN_PASSWORD),
+        password_hash=hash_secret(settings.FIRST_ADMIN_PASSWORD),
         role_id=super_admin_role_id,
         is_active=True,
     )

@@ -29,6 +29,9 @@ class Settings(BaseSettings):
     FACE_EMBEDDING_MODEL: str
 
     DEEPFACE_API_URL: str
+
+    KIOSK_REFRESH_TOKEN_EXPIRE_DAYS: int
+    KIOSK_ACTIVATION_CODE_EXPIRE_MINUTES: int
     
     class Config:
         env_file = ".env"

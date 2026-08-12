@@ -1,23 +1,35 @@
 from datetime import datetime, timedelta, timezone
 from typing import Any
+
 from jose import JWTError, jwt
-from src.config import get_settings
 from bcrypt import gensalt, hashpw, checkpw
+import secrets
+
+from src.config import get_settings
+from src.auth.constants import CHARS
 
 settings = get_settings()
 
-def hash_password(password: str) -> str:
-    password_bytes = password.encode('utf-8')
+def hash_secret(secret: str) -> str:
+    secret_bytes = secret.encode('utf-8')
     salt = gensalt()
-    hashed_bytes = hashpw(password_bytes, salt)
+    hashed_bytes = hashpw(secret_bytes, salt)
     
     return hashed_bytes.decode('utf-8')
 
-def verify_password(plain_password: str, hashed_password: str) -> bool:
+def verify_secret(plain_secret: str, hashed_secret: str) -> bool:
     return checkpw(
-        plain_password.encode('utf-8'), 
-        hashed_password.encode('utf-8')
+        plain_secret.encode('utf-8'), 
+        hashed_secret.encode('utf-8')
     )
+
+def generate_activation_code(blocks: int = 3, block_len: int = 4) -> str:
+    """Generates a cryptographically secure, human-friendly activation code."""
+    code_blocks = [
+        "".join(secrets.choice(CHARS) for _ in range(block_len))
+        for _ in range(blocks)
+    ]
+    return "-".join(code_blocks)
 
 def _create_token(
     data: dict[str, Any],
@@ -77,3 +89,27 @@ def decode_access_token(token: str) -> dict[str, Any] | None:
     
 def decode_refresh_token(token: str) -> dict[str, Any] | None:
     return decode_token(token, expected_type="refresh")
+
+def create_device_tokens(device_id: int) -> dict[str, str]:
+    """Generates both access and refresh tokens scoped specifically to a device."""
+    access_token = _create_token(
+        data={"sub": str(device_id)},
+        token_type="device_access",
+        expires_in=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
+    )
+    refresh_token = _create_token(
+        data={"sub": str(device_id)},
+        token_type="device_refresh",
+        expires_in=timedelta(days=365),
+    )
+    return {
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "token_type": "bearer",
+    }
+
+def decode_device_access_token(token: str) -> dict[str, Any] | None:
+    return decode_token(token, expected_type="device_access")
+
+def decode_device_refresh_token(token: str) -> dict[str, Any] | None:
+    return decode_token(token, expected_type="device_refresh")

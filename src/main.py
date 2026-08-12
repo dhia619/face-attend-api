@@ -8,6 +8,7 @@ from src.auth.router import auth_router
 from src.employees.router import employee_router
 from src.rbac.router import rbac_router
 from src.departments.router import department_router
+from src.devices.router import device_router
 from src.core.logging import setup_logging
 
 settings = get_settings()
@@ -31,7 +32,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get("/")
+@app.get(f"{settings.BASE_API_PATH}/")
 def root():
     return {"app_name": settings.APP_NAME, "app_version": settings.APP_VERSION}
 
@@ -57,4 +58,10 @@ app.include_router(
     router=rbac_router,
     prefix=f"{settings.BASE_API_PATH}/rbac",
     tags=["RBAC"]
+)
+
+app.include_router(
+    router=device_router,
+    prefix=f"{settings.BASE_API_PATH}/devices",
+    tags=["Devices"]
 )
