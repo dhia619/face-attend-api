@@ -10,7 +10,7 @@ from src.rbac.constants import PermissionCode
 
 rbac_router = APIRouter()
 
-@rbac_router.get("/roles", response_model=list[RoleResponse])
+@rbac_router.get("/roles", response_model=list[RoleRead])
 async def list_roles(
     session: AsyncSession = Depends(get_db),
     user: User = Depends(require_permission(PermissionCode.ROLE_READ))
@@ -18,7 +18,7 @@ async def list_roles(
     return await service.get_roles(db=session)
 
 
-@rbac_router.get("/roles/{role_id}", response_model=RoleResponse)
+@rbac_router.get("/roles/{role_id}", response_model=RoleRead)
 async def get_role(
     role_id: int,
     session: AsyncSession = Depends(get_db),
@@ -29,7 +29,7 @@ async def get_role(
 
 @rbac_router.post(
     "/roles", 
-    response_model=RoleResponse, 
+    response_model=RoleRead, 
     status_code=status.HTTP_201_CREATED
 )
 async def create_role(
@@ -44,7 +44,7 @@ async def create_role(
 
 @rbac_router.post(
     "/roles/{role_id}/permissions/{permission_id}",
-    response_model=RolePermissionResponse
+    response_model=RolePermissionRead
 )
 async def assign_permission_to_role(
     role_id: int,
@@ -58,7 +58,7 @@ async def assign_permission_to_role(
         permission_id=permission_id
     )
 
-@rbac_router.patch("/roles/{role_id}", response_model=RoleResponse)
+@rbac_router.patch("/roles/{role_id}", response_model=RoleRead)
 async def update_role(
     role_id: int,
     role_data: UpdateRole,
@@ -81,7 +81,7 @@ async def delete_role(
     await service.delete_role(db=session, role_id=role_id)
 
 
-@rbac_router.get("/roles/{role_id}/permissions", response_model=list[PermissionResponse])
+@rbac_router.get("/roles/{role_id}/permissions", response_model=list[PermissionRead])
 async def list_role_permissions(
     role_id: int,
     session: AsyncSession = Depends(get_db),
@@ -91,7 +91,7 @@ async def list_role_permissions(
     return await service.get_role_permissions(db=session, role_id=role_id)
 
 
-@rbac_router.get("/permissions", response_model=list[PermissionResponse])
+@rbac_router.get("/permissions", response_model=list[PermissionRead])
 async def list_permissions(
     session: AsyncSession = Depends(get_db),
     user: User = Depends(require_permission(PermissionCode.PERMISSION_READ))
@@ -99,7 +99,7 @@ async def list_permissions(
     return await service.get_permissions(db=session)
 
 
-@rbac_router.get("/permissions/{permission_id}", response_model=PermissionResponse)
+@rbac_router.get("/permissions/{permission_id}", response_model=PermissionRead)
 async def get_permission(
     permission_id: int,
     session: AsyncSession = Depends(get_db),

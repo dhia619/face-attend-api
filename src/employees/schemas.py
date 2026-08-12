@@ -20,7 +20,7 @@ class UpdateEmployee(BaseModel):
 class DeleteEmployee(BaseModel):
     employee_id: int
 
-class EmployeeResponse(BaseModel):
+class EmployeeRead(BaseModel):
     id: int
     full_name: str
     department_id: int| None

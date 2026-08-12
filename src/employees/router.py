@@ -10,7 +10,7 @@ from src.rbac.constants import PermissionCode
 
 employee_router = APIRouter()
 
-@employee_router.get("", response_model=list[EmployeeResponse])
+@employee_router.get("", response_model=list[EmployeeRead])
 async def list_employees(
     session: AsyncSession = Depends(get_db),
     user: User = Depends(require_permission(PermissionCode.EMPLOYEES_READ))
@@ -18,7 +18,7 @@ async def list_employees(
     return await service.get_employees(db=session)
 
 
-@employee_router.get("/{employee_id}", response_model=EmployeeResponse)
+@employee_router.get("/{employee_id}", response_model=EmployeeRead)
 async def get_employee(
     employee_id: int,
     session: AsyncSession = Depends(get_db),
@@ -29,7 +29,7 @@ async def get_employee(
 
 @employee_router.post(
     "", 
-    response_model=EmployeeResponse, 
+    response_model=EmployeeRead, 
     status_code=status.HTTP_201_CREATED
 )
 async def create_employee(
@@ -43,7 +43,7 @@ async def create_employee(
     )
 
 
-@employee_router.patch("/{employee_id}", response_model=EmployeeResponse)
+@employee_router.patch("/{employee_id}", response_model=EmployeeRead)
 async def update_employee(
     employee_id: int,
     employee_data: UpdateEmployee,

@@ -10,7 +10,7 @@ from src.rbac.constants import PermissionCode
 
 department_router = APIRouter()
 
-@department_router.get("", response_model=list[DepartmentResponse])
+@department_router.get("", response_model=list[DepartmentRead])
 async def list_departments(
     session: AsyncSession = Depends(get_db),
     user: User = Depends(require_permission(PermissionCode.DEPARTMENT_READ))
@@ -18,7 +18,7 @@ async def list_departments(
     return await service.get_departments(db=session)
 
 
-@department_router.get("/{department_id}", response_model=DepartmentResponse)
+@department_router.get("/{department_id}", response_model=DepartmentRead)
 async def get_department(
     department_id: int,
     session: AsyncSession = Depends(get_db),
@@ -29,7 +29,7 @@ async def get_department(
 
 @department_router.post(
     "", 
-    response_model=DepartmentResponse, 
+    response_model=DepartmentRead, 
     status_code=status.HTTP_201_CREATED
 )
 async def create_department(

@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-class DepartmentResponse(BaseModel):
+class DepartmentRead(BaseModel):
     id: int
     name: str
 

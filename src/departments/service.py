@@ -56,7 +56,7 @@ async def get_department(
 
     if not department:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=status.HTTP_404_NOT_FOUND,
             detail=ErrorMessage.DEPARTMENT_NOT_FOUND
         )
 
@@ -67,14 +67,7 @@ async def delete_department(
     department_id: int
 ) -> None:
     
-    if not await repository.get_department_by_id(
-        db=db,
-        department_id=department_id
-    ):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, 
-            detail=ErrorMessage.DEPARTMENT_NOT_FOUND
-        )
+    _ = await get_department(db=db, department_id=department_id)
     
     if not await repository.delete_department(
         db=db, 
