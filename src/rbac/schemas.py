@@ -17,3 +17,6 @@ class PermissionRead(BaseModel):
 class RolePermissionRead(BaseModel):
     role_id: int
     permission_id: int
+
+class AssignPermissions(BaseModel):
+    permission_ids: list[int]

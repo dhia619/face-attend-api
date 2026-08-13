@@ -68,40 +68,36 @@ async def delete_role(
 
     await db.commit()
 
-async def add_permission_to_role(
+async def add_permissions_to_role(
     db: AsyncSession,
     role_id: int,
-    permission_id: int
-) -> RolePermission:
+    permission_ids: list[int]
+):
 
     _ = await get_role_by_id(db=db, role_id=role_id)
 
-    permission = await repository.get_permission_by_id(db=db, permission_id=permission_id)
-    if not permission:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=ErrorMessage.PERMISSION_NOT_FOUND
+    existing_permissions = await get_role_permissions(db, role_id)
+    existing_permissions_ids = [existing_permission.id for existing_permission in existing_permissions]
+
+    for permission_id in permission_ids:
+        if permission_id in existing_permissions_ids:
+            continue
+
+        permission = await repository.get_permission_by_id(db=db, permission_id=permission_id)
+        if not permission:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=ErrorMessage.PERMISSION_NOT_FOUND
+            )
+
+        role_permission = RolePermission(
+            role_id=role_id,
+            permission_id=permission_id
         )
 
-    if await repository.role_has_permission(
-        db=db,
-        role_id=role_id,
-        permission_code=permission.code
-    ):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=ErrorMessage.ROLE_PERMISSION_EXIST
-        )
+        role_permission = await repository.add_permission_to_role(db=db, role_permission=role_permission)
 
-    role_permission = RolePermission(
-        role_id=role_id,
-        permission_id=permission_id
-    )
-
-    role_permission = await repository.add_permission_to_role(db=db, role_permission=role_permission)
-    if role_permission:
-        await db.commit()
-        return role_permission
+    await db.commit()
 
 async def get_role_by_id(
     db: AsyncSession,
