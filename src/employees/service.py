@@ -102,6 +102,8 @@ async def remove_employee(
     employee_id: int
 ) -> bool:
 
+    _ = await get_employee_by_id(db, employee_id)
+
     if await repository.delete_employee(db=db, employee_id=employee_id):
         await db.commit()
         return True

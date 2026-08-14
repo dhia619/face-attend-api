@@ -5,10 +5,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from src.config import get_settings
 from src.database import engine
 from src.auth.router import auth_router
+from src.users.router import user_router
 from src.employees.router import employee_router
 from src.rbac.router import rbac_router
 from src.departments.router import department_router
 from src.devices.router import device_router
+from src.recognition.router import recognition_router
 from src.core.logging import setup_logging
 
 settings = get_settings()
@@ -64,4 +66,16 @@ app.include_router(
     router=device_router,
     prefix=f"{settings.BASE_API_PATH}/devices",
     tags=["Devices"]
+)
+
+app.include_router(
+    router=recognition_router,
+    prefix=f"{settings.BASE_API_PATH}/recognition",
+    tags=["Recognition"]
+)
+
+app.include_router(
+    router=user_router,
+    prefix=f"{settings.BASE_API_PATH}/users",
+    tags=["Users"]
 )

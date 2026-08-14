@@ -82,7 +82,7 @@ async def regenerate_device_activation_code(
 
     device_activation_code = await service.get_new_activation_code(session, device_id)
     return JSONResponse(
-            content={
-                "device_activation_code": device_activation_code
-            }
-        )
+        content={
+            "device_activation_code": device_activation_code
+        }
+    )

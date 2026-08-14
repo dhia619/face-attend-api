@@ -1,6 +1,8 @@
 from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from typing import Any
+
 from src.employees.models import Employee, FaceEmbedding
 from src.employees.schemas import UpdateEmployee
 
@@ -82,3 +84,33 @@ async def delete_employee(
     
     result = await db.execute(delete(Employee).where(Employee.id == employee_id))
     return result.rowcount == 1
+
+async def find_closest_employee(
+    db: AsyncSession,
+    embedding: list[float],
+    distance_threshold: float,
+) -> dict[str, Any]:
+
+    distance = FaceEmbedding.embeddings.cosine_distance(embedding).label("distance")
+
+    stmt = (
+        select(Employee, distance)
+        .join(
+            FaceEmbedding,
+            FaceEmbedding.employee_id == Employee.id,
+        )
+        .where(distance < distance_threshold)
+        .order_by(distance)
+        .limit(1)
+    )
+
+    result = await db.execute(stmt)
+
+    row = result.one_or_none()
+
+    employee, actual_distance = row
+
+    return {
+        "employee": employee,
+        "distance": actual_distance
+    }
