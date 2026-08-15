@@ -10,6 +10,7 @@ from src.users.models import User
 
 auth_router = APIRouter()
 
+
 @auth_router.post("/login", response_model=TokenResponse)
 async def login(
     login_request: LoginRequest,
@@ -20,6 +21,7 @@ async def login(
         email=login_request.email,
         password=login_request.password
     )
+
 
 @auth_router.post("/refresh", response_model=TokenResponse)
 async def refresh(

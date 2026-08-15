@@ -4,6 +4,7 @@ from typing import Any
 from jose import JWTError, jwt
 from bcrypt import gensalt, hashpw, checkpw
 import secrets
+import hashlib
 
 from src.config import get_settings
 from src.auth.constants import CHARS
@@ -23,8 +24,14 @@ def verify_secret(plain_secret: str, hashed_secret: str) -> bool:
         hashed_secret.encode('utf-8')
     )
 
+def hash_refresh_token(token: str) -> str:
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+def verify_refresh_token(token: str, token_hash: str) -> bool:
+    return hashlib.sha256(token.encode("utf-8")).hexdigest() == token_hash
+
 def generate_activation_code(blocks: int = 3, block_len: int = 4) -> str:
-    """Generates a cryptographically secure, human-friendly activation code."""
+    """Generates an activation code with format XXXX-XXXX-XXXX."""
     code_blocks = [
         "".join(secrets.choice(CHARS) for _ in range(block_len))
         for _ in range(blocks)

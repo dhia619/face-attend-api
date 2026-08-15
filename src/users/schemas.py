@@ -16,6 +16,7 @@ class UserUpdate(BaseModel):
     full_name: str | None = None
     email: str | None = None
     role_id: int | None = None
+    refresh_token_hash: str | None = None
 
 class ChangePassword(BaseModel):
     current_password: str

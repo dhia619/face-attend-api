@@ -4,13 +4,17 @@ from fastapi import status
 
 from src.auth.security import (
     verify_secret, 
+    hash_refresh_token,
+    verify_refresh_token,
     create_access_token, 
     create_refresh_token,
     decode_refresh_token
 )
 
 from src.auth.constants import ErrorMessage
-from src.users.repository import get_user_by_email, get_user_by_id
+from src.users.repository import get_user_by_email, get_user_by_id, update_user
+from src.users.schemas import UserUpdate
+from src.users.models import User
 
 async def authenticate_user(
     db: AsyncSession, 
@@ -25,7 +29,7 @@ async def authenticate_user(
             detail=ErrorMessage.INVALID_CREDENTIALS
         )
     access_token = create_access_token(data={"sub": str(user.id)})
-    refresh_token = create_refresh_token(data={"sub": str(user.id)})
+    refresh_token = await _create_refresh_token(db, user)
 
     return {
         "access_token": access_token,
@@ -53,8 +57,36 @@ async def refresh_token(
             detail=ErrorMessage.USER_NOT_FOUND
         )
 
+    if not verify_refresh_token(refresh_token, user.refresh_token_hash):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=ErrorMessage.INVALID_TOKEN
+        )
+
+    new_refresh_token = await _create_refresh_token(db, user)
+    
     return {
         "access_token": create_access_token({"sub": str(user.id)}),
-        "refresh_token": create_refresh_token({"sub": str(user.id)}),
+        "refresh_token": new_refresh_token,
         "token_type": "bearer"
     }
+
+async def _create_refresh_token(
+    db: AsyncSession,
+    user: User,
+) -> str:
+
+    new_refresh_token = create_refresh_token({"sub": str(user.id)})
+    user.refresh_token_hash = hash_refresh_token(new_refresh_token)
+
+    _ = await update_user(
+        db=db,
+        user=user,
+        user_data=UserUpdate(
+            refresh_token_hash=user.refresh_token_hash
+        )
+    )
+
+    await db.commit()
+
+    return new_refresh_token
