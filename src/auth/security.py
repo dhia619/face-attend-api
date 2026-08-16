@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta, timezone
 from typing import Any
+import logging
 
 from jose import JWTError, jwt
 from bcrypt import gensalt, hashpw, checkpw
@@ -9,6 +10,7 @@ import hashlib
 from src.config import get_settings
 from src.auth.constants import CHARS
 
+logger = logging.getLogger(__name__)
 settings = get_settings()
 
 def hash_secret(secret: str) -> str:
@@ -88,7 +90,8 @@ def decode_token(token: str, expected_type: str) -> dict[str, Any] | None:
 
         return payload
 
-    except JWTError:
+    except JWTError as e:
+        logger.error("JWT ERROR:" + repr(e))
         return None
 
 def decode_access_token(token: str) -> dict[str, Any] | None:
@@ -107,7 +110,7 @@ def create_device_tokens(device_id: int) -> dict[str, str]:
     refresh_token = _create_token(
         data={"sub": str(device_id)},
         token_type="device_refresh",
-        expires_in=timedelta(days=365),
+        expires_in=timedelta(days=settings.KIOSK_REFRESH_TOKEN_EXPIRE_DAYS),
     )
     return {
         "access_token": access_token,

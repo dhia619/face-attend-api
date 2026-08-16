@@ -4,12 +4,40 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database import get_db
 from src.devices.schemas import *
+from src.devices.models import Device
 import src.devices.service as service
 from src.users.models import User
 from src.rbac.dependencies import require_permission
 from src.rbac.constants import PermissionCode
+from src.auth.schemas import TokenResponse
+from src.recognition.dependencies import get_current_kiosk_device
 
 device_router = APIRouter()
+
+
+@device_router.get(
+    "/me",
+    response_model=DeviceRead,
+)
+async def get_current_device(
+    device: Device = Depends(get_current_kiosk_device)
+):
+    """
+    Called by kiosk on startup to get its own info.
+    Uses device JWT — no admin auth needed.
+    """
+    return device
+
+@device_router.post("/refresh", response_model=TokenResponse)
+async def refresh_device_credentials(
+    payload: RefreshRequest,
+    session: AsyncSession = Depends(get_db),
+):
+    print("REFRESH API HIT ###", flush=True)
+    return await service.refresh_credentials(
+        db=session,
+        refresh_token=payload.refresh_token
+    )
 
 @device_router.get("", response_model=list[DeviceRead])
 async def list_devices(
@@ -59,17 +87,15 @@ async def delete_device(
 
 
 @device_router.post(
-    "/{device_id}/activate",
+    "/activate",
     response_model=DeviceCredentials,
 )
 async def activate_device(
-    device_id: int,
     activate_device: ActivateDevice,
     session: AsyncSession = Depends(get_db)
 ):
    return await service.activate_device(
         db=session, 
-        device_id=device_id,
         activation_code=activate_device.activation_code
     )
 

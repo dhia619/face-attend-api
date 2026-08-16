@@ -2,6 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete
 
 from src.devices.models import Device
+from src.devices.schemas import UpdateDevice
 
 async def get_device_by_id(
     db: AsyncSession,
@@ -35,6 +36,13 @@ async def add_device(
 
     return device
 
+async def get_device_by_activation_code(
+    db: AsyncSession,
+    activation_code: str
+) -> Device | None:
+    result = await db.execute(select(Device).where(Device.activation_code == activation_code))
+    return result.scalar_one_or_none()    
+
 async def delete_device(
     db: AsyncSession,
     device_id: int
@@ -42,3 +50,17 @@ async def delete_device(
 
     result = await db.execute(delete(Device).where(Device.id == device_id))
     return result.rowcount == 1
+
+async def update_device(
+    db: AsyncSession,
+    device: Device,
+    device_data: UpdateDevice
+) -> Device:
+    data = device_data.model_dump(exclude_unset=True)
+
+    for field, value in data.items():
+        setattr(device, field, value)
+
+    await db.flush()
+
+    return device
