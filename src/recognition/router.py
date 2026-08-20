@@ -7,7 +7,6 @@ from src.recognition.dependencies import get_current_kiosk_device
 from src.recognition import service
 from src.recognition.schemas import *
 from src.devices.models import Device
-from src.devices.schemas import DeviceRead
 
 recognition_router = APIRouter()
 

@@ -3,6 +3,7 @@ from pydantic import BaseModel
 class DeviceRead(BaseModel):
     id: int
     name: str
+    status: str
 
 class CreateDevice(BaseModel):
     name: str

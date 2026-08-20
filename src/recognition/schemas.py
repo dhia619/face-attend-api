@@ -6,10 +6,10 @@ class RecognitionRequest(BaseModel):
     device_id: int
 
 class RecognitionResponse(BaseModel):
-    employee_id: int
-    full_name: str
-    email: str
-    check_type: str
-    confidence: float
-    timestamp: datetime
-    already_recorded: bool
+    employee_id: int | None = None
+    full_name: str | None = None
+    email: str | None = None
+    check_type: str | None = None
+    confidence: float | None = None
+    timestamp: datetime | None = None
+    already_recorded: bool | None = None

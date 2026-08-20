@@ -34,9 +34,14 @@ async def process_recognition(
 
     embedding = await get_face_embedding(payload.face_image)
     if embedding is None:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=recognition_constants.ErrorMessage.NO_FACE_DETECTED
+        return RecognitionResponse(
+            employee_id=None,
+            full_name=None,
+            email=None,
+            check_type=None,
+            confidence=None,
+            timestamp=None,
+            already_recorded=False
         )
 
     recognition_data = await employee_repository.find_closest_employee(
