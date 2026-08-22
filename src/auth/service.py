@@ -2,6 +2,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi.exceptions import HTTPException
 from fastapi import status
 
+import logging
+
 from src.auth.security import (
     verify_secret, 
     hash_refresh_token,
@@ -10,11 +12,12 @@ from src.auth.security import (
     create_refresh_token,
     decode_refresh_token
 )
-
 from src.auth.constants import ErrorMessage
 from src.users.repository import get_user_by_email, get_user_by_id, update_user
 from src.users.schemas import UserUpdate
 from src.users.models import User
+
+logger = logging.getLogger(__name__)
 
 async def authenticate_user(
     db: AsyncSession, 
@@ -90,3 +93,8 @@ async def _create_refresh_token(
     await db.commit()
 
     return new_refresh_token
+
+async def logout(db: AsyncSession, user: User) -> None:
+    user.refresh_token_hash = None
+    await db.commit()
+    logger.info(f"User {user.id} logged out")
