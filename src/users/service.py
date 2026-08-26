@@ -16,19 +16,34 @@ async def register_user(
 ) -> User:
     
     if not user_data.email:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=employees_constants.ErrorMessage.MISSING_EMAIL)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, 
+            detail=employees_constants.ErrorMessage.MISSING_EMAIL
+        )
 
     if await repository.get_user_by_email(db=db, email=user_data.email):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=employees_constants.ErrorMessage.EMAIL_EXISTS)
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, 
+            detail=employees_constants.ErrorMessage.EMAIL_EXISTS
+        )
 
     if not user_data.full_name:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=employees_constants.ErrorMessage.MISSING_FULL_NAME)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, 
+            detail=employees_constants.ErrorMessage.MISSING_FULL_NAME
+        )
 
     if not user_data.password:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=users_constants.ErrorMessage.MISSING_PASSWORD)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, 
+            detail=users_constants.ErrorMessage.MISSING_PASSWORD
+        )
 
     if not user_data.role_id:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=users_constants.ErrorMessage.MISSING_ROLE)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, 
+            detail=users_constants.ErrorMessage.MISSING_ROLE
+        )
 
     user = User(
         full_name=user_data.full_name,

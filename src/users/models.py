@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, DateTime, String, ForeignKey, Boolean, func
+from sqlalchemy.orm import relationship
 
 from src.database import SQLAlchemyBase
 
@@ -16,3 +17,5 @@ class User(SQLAlchemyBase):
     updated_at = Column(DateTime, server_default=func.now())
     last_login_at = Column(DateTime)
     is_active = Column(Boolean, default=True)
+
+    role = relationship("Role", lazy="selectin")

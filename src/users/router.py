@@ -44,7 +44,7 @@ async def create_user(
     )
 
 
-@user_router.patch("/{user_id}", response_model=UserRead)
+@user_router.put("/{user_id}", response_model=UserRead)
 async def update_user(
     user_id: int,
     payload: UserUpdate,
