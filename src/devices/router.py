@@ -33,7 +33,6 @@ async def refresh_device_credentials(
     payload: RefreshRequest,
     session: AsyncSession = Depends(get_db),
 ):
-    print("REFRESH API HIT ###", flush=True)
     return await service.refresh_credentials(
         db=session,
         refresh_token=payload.refresh_token

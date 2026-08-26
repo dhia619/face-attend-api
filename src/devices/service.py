@@ -181,7 +181,6 @@ async def refresh_credentials(
     refresh_token: str
 ) -> dict[str, str]:
     payload = decode_device_refresh_token(refresh_token)
-    print(payload)
     if payload is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -190,8 +189,6 @@ async def refresh_credentials(
 
     device_id = payload.get("sub")
     device = await get_device(db, int(device_id))
-    print("original ==>", device.refresh_token_hash, flush=True)
-    print("to compare ==>", hash_refresh_token(refresh_token), flush=True)
     if not verify_refresh_token(refresh_token, device.refresh_token_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
