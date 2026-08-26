@@ -1,6 +1,8 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 
 from src.config import get_settings
 from src.database import engine
@@ -12,6 +14,7 @@ from src.departments.router import department_router
 from src.devices.router import device_router
 from src.recognition.router import recognition_router
 from src.core.logging import setup_logging
+from src.core.exception_handlers import VALIDATION_MESSAGES
 
 settings = get_settings()
 
@@ -33,6 +36,29 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(
+    request: Request,
+    exc: RequestValidationError,
+):
+    errors = []
+
+    for error in exc.errors():
+        field = error["loc"][-1] if error["loc"] else "unknown"
+        error_type = error["type"]
+
+        message = VALIDATION_MESSAGES.get(error_type, "Invalid value")
+
+        errors.append({
+            "field": field,
+            "message": message
+        })
+
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content={"detail": errors}
+    )
 
 @app.get(f"{settings.BASE_API_PATH}/")
 def root():

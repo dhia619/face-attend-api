@@ -39,7 +39,7 @@ async def create_role(
 ):
     return await service.add_role(
         db=session,
-        role_name=role_data.name
+        role_data=role_data
     )
 
 @rbac_router.post(
@@ -57,7 +57,7 @@ async def assign_permissions_to_role(
         permission_ids=payload.permission_ids
     )
 
-@rbac_router.patch("/roles/{role_id}", response_model=RoleRead)
+@rbac_router.put("/roles/{role_id}", response_model=RoleRead)
 async def update_role(
     role_id: int,
     role_data: UpdateRole,

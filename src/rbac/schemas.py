@@ -1,14 +1,18 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field
 
 class RoleRead(BaseModel):
     id: int
     name: str
 
+    model_config = ConfigDict(from_attributes=True)
+
 class CreateRole(BaseModel):
-    name: str
+    name: str = Field(min_length=2)
+    permission_ids: list[int] = []
 
 class UpdateRole(BaseModel):
-    name: str
+    name: str = Field(min_length=2)
+    permission_ids: list[int] = []
 
 class PermissionRead(BaseModel):
     id: int

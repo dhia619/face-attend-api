@@ -106,3 +106,18 @@ async def add_permission_to_role(
     await db.flush()
 
     return role_permission
+
+async def remove_permissions_from_role(
+    db: AsyncSession,
+    role_id: int,
+    permission_ids: list[int],
+) -> None:
+    if not permission_ids:
+        return
+
+    await db.execute(
+        delete(RolePermission).where(
+            RolePermission.role_id == role_id,
+            RolePermission.permission_id.in_(permission_ids),
+        )
+    )

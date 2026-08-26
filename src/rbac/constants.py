@@ -42,3 +42,4 @@ class ErrorMessage:
     ROLE_DELETE_ERROR = "Failed to delete role."
     PERMISSION_NOT_FOUND = "Permission not found."
     ROLE_PERMISSION_EXIST = "The role already has that permission."
+    ROLE_CREATE_ERROR = "Failed to create role."

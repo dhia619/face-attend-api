@@ -56,13 +56,13 @@ async def refresh_token(
 
     if not user or not user.is_active:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=status.HTTP_401_UNAUTHORIZED,
             detail=ErrorMessage.USER_NOT_FOUND
         )
 
     if not verify_refresh_token(refresh_token, user.refresh_token_hash):
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=status.HTTP_401_UNAUTHORIZED,
             detail=ErrorMessage.INVALID_TOKEN
         )
 
