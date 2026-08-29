@@ -43,7 +43,7 @@ async def create_employee(
     )
 
 
-@employee_router.patch("/{employee_id}", response_model=EmployeeRead)
+@employee_router.put("/{employee_id}", response_model=EmployeeRead)
 async def update_employee(
     employee_id: int,
     employee_data: UpdateEmployee,
@@ -64,3 +64,20 @@ async def delete_employee(
     user: User = Depends(require_permission(PermissionCode.EMPLOYEES_WRITE))
 ):
     await service.remove_employee(db=session, employee_id=employee_id)
+
+
+@employee_router.post(
+    "/{employee_id}/embeddings",
+    status_code=201,
+    dependencies=[Depends(require_permission(PermissionCode.EMPLOYEES_WRITE))]
+)
+async def add_employee_embedding(
+    employee_id: int,
+    data: CreateEmbedding,
+    session: AsyncSession = Depends(get_db),
+):
+    await service.add_face_embedding(
+        db=session,
+        employee_id=employee_id,
+        data=data
+    )

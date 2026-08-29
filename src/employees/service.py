@@ -4,7 +4,7 @@ from sqlalchemy.exc import IntegrityError
 from fastapi.exceptions import HTTPException
 from fastapi import status
 
-from src.employees.schemas import CreateEmployee, UpdateEmployee
+from src.employees.schemas import CreateEmployee, UpdateEmployee, CreateEmbedding
 from src.employees.constants import ErrorMessage
 from src.employees.models import Employee, FaceEmbedding
 import src.employees.repository as repository
@@ -14,17 +14,9 @@ async def register_employee(
     db: AsyncSession,
     employee_data: CreateEmployee
 ) -> Employee:
-    
-    if not employee_data.email:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=ErrorMessage.MISSING_EMAIL)
 
     if await repository.get_employee_by_email(db=db, email=employee_data.email):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=ErrorMessage.EMAIL_EXISTS)
-
-    if not employee_data.full_name:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=ErrorMessage.MISSING_FULL_NAME)
-    if not employee_data.face_image:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=ErrorMessage.MISSING_FACE_IMAGE)
 
     employee = Employee(
         full_name=employee_data.full_name,
@@ -102,9 +94,29 @@ async def remove_employee(
     employee_id: int
 ) -> bool:
 
-    _ = await get_employee_by_id(db, employee_id)
+    await get_employee_by_id(db, employee_id)
 
     if await repository.delete_employee(db=db, employee_id=employee_id):
         await db.commit()
         return True
     return False
+
+async def add_face_embedding(
+    db: AsyncSession,
+    employee_id: int,
+    data: CreateEmbedding 
+):
+    await get_employee_by_id(db, employee_id)
+
+    face_embeddings = await get_face_embedding(data.face_image)
+    
+    if not face_embeddings:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=ErrorMessage.FACE_EMBEDDING_FAILED)
+
+    face_embedding = FaceEmbedding(
+        embeddings = face_embeddings,
+        employee_id = employee_id
+    )
+
+    db.add(face_embedding)
+    await db.commit()
