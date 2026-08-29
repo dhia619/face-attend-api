@@ -1,8 +1,16 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 class DepartmentRead(BaseModel):
     id: int
-    name: str
+    name: str = Field(
+        ...,
+        min_length=2,
+        description= "Department name"
+    )
 
 class CreateDepartment(BaseModel):
-    name: str
+    name: str = Field(
+        ...,
+        min_length=2,
+        description= "Department name"
+    )

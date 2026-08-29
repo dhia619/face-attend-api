@@ -43,6 +43,22 @@ async def create_department(
     )
 
 
+@department_router.put(
+    "/{department_id}", 
+    response_model=DepartmentRead, 
+)
+async def update_department(
+    department_id: int,
+    department_data: CreateDepartment,
+    session: AsyncSession = Depends(get_db),
+    user: User = Depends(require_permission(PermissionCode.DEPARTMENT_WRITE))
+):
+    return await service.update_department(
+        db=session,
+        department_id=department_id,
+        department_data=department_data
+    )
+
 @department_router.delete("/{department_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_department(
     department_id: int,

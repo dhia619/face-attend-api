@@ -79,3 +79,16 @@ async def delete_department(
         )
 
     await db.commit()
+
+async def update_department(
+    db: AsyncSession,
+    department_id: int,
+    department_data: CreateDepartment
+) -> None:
+
+    department = await get_department(db, department_id)
+    department.name = department_data.name
+
+    await db.commit()
+
+    return department
