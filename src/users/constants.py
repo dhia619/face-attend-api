@@ -6,4 +6,7 @@ class ErrorMessage:
     MISSING_PASSWORD = "Password is missing."
     INCORRECT_PASSWORD = "Password is incorrect."
     CREATE_USER_ERROR = "Failed to create user."
+    CANNOT_EDIT_SUPER_ADMIN = "Cannot modify super admin account."
+    CANNOT_DELETE_OWN_ACCOUNT = "Cannot delete your own account."
+    CANNOT_DELETE_SUPER_ADMIN = "Cannot delete super admin account."
     

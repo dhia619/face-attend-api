@@ -5,44 +5,21 @@ from fastapi import status
 
 from src.auth.security import hash_secret, verify_secret
 from src.users.schemas import UserCreate, UserUpdate, ChangePassword
-import src.users.constants as users_constants
+from src.users.constants import ErrorMessage as UserErrorMessage
 from src.users.models import User
 from src.users import repository
-import src.employees.constants as employees_constants
+from src.employees.constants import ErrorMessage as EmployeeErrorMessage
+from src.rbac.constants import RoleName
 
 async def register_user(
     db: AsyncSession,
     user_data: UserCreate
 ) -> User:
-    
-    if not user_data.email:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, 
-            detail=employees_constants.ErrorMessage.MISSING_EMAIL
-        )
 
     if await repository.get_user_by_email(db=db, email=user_data.email):
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, 
-            detail=employees_constants.ErrorMessage.EMAIL_EXISTS
-        )
-
-    if not user_data.full_name:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, 
-            detail=employees_constants.ErrorMessage.MISSING_FULL_NAME
-        )
-
-    if not user_data.password:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, 
-            detail=users_constants.ErrorMessage.MISSING_PASSWORD
-        )
-
-    if not user_data.role_id:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, 
-            detail=users_constants.ErrorMessage.MISSING_ROLE
+            detail=EmployeeErrorMessage.EMAIL_EXISTS
         )
 
     user = User(
@@ -57,7 +34,7 @@ async def register_user(
     if not user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=users_constants.ErrorMessage.CREATE_USER_ERROR
+            detail=UserErrorMessage.CREATE_USER_ERROR
         )
 
     await db.commit()
@@ -72,7 +49,7 @@ async def get_user_by_id(
     if not user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, 
-            detail=users_constants.ErrorMessage.USER_NOT_FOUND
+            detail=UserErrorMessage.USER_NOT_FOUND
         )
     return user  
 
@@ -84,15 +61,23 @@ async def get_users(
 
 async def update_user(
     db: AsyncSession, 
+    current_user: User,
     user_id: int,
     user_data: UserUpdate
 ) -> User:
 
-    user = await get_user_by_id(db, user_id)
+    target_user = await get_user_by_id(db, user_id)
+    if (target_user.role.name == RoleName.SUPER_ADMIN
+        and current_user.role.name != RoleName.SUPER_ADMIN
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=UserErrorMessage.CANNOT_EDIT_SUPER_ADMIN
+        )
 
     updated_user = await repository.update_user(
         db=db, 
-        user=user,
+        user=target_user,
         user_data=user_data
     )
 
@@ -103,10 +88,25 @@ async def update_user(
 
 async def delete_user(
     db: AsyncSession, 
+    current_user: User,
     user_id: int
 ) -> bool:
 
-    _ = await get_user_by_id(db, user_id)
+    target_user = await get_user_by_id(db, user_id)
+
+    if current_user.id == target_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=UserErrorMessage.CANNOT_DELETE_OWN_ACCOUNT
+        )
+    
+    if (current_user.role.name != RoleName.SUPER_ADMIN
+        and target_user.role.name == RoleName.SUPER_ADMIN
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=UserErrorMessage.CANNOT_DELETE_SUPER_ADMIN
+        )
 
     if await repository.delete_user(db, user_id):
         await db.commit()
@@ -124,13 +124,13 @@ async def change_password(
     if not verify_secret(change_password_data.current_password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=users_constants.ErrorMessage.INCORRECT_PASSWORD
+            detail=UserErrorMessage.INCORRECT_PASSWORD
         )
 
     if not change_password_data.new_password:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=users_constants.ErrorMessage.MISSING_PASSWORD
+            detail=UserErrorMessage.MISSING_PASSWORD
         )
 
     user.password_hash = hash_secret(change_password_data.new_password)

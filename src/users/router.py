@@ -53,6 +53,7 @@ async def update_user(
 ):
     return await service.update_user(
         db=session,
+        current_user=user,
         user_id=user_id,
         user_data=payload
     )
@@ -64,7 +65,11 @@ async def delete_user(
     session: AsyncSession = Depends(get_db),
     user: User = Depends(require_permission(PermissionCode.USERS_WRITE))
 ):
-    await service.delete_user(db=session, user_id=user_id)
+    await service.delete_user(
+        db=session, 
+        current_user=user,
+        user_id=user_id
+    )
 
 
 @user_router.post("/{user_id}/change-password")
