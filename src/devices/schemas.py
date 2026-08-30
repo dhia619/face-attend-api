@@ -15,10 +15,13 @@ class DeviceCredentials(BaseModel):
     access_token: str
     refresh_token: str
 
-
 class RefreshRequest(BaseModel):
     refresh_token: str
 
 class UpdateDevice(BaseModel):
     name: str | None = None
     refresh_token_hash: str | None = None
+    enabled: bool | None = None
+
+class ActivateDeviceResponse(BaseModel):
+    device_activation_code: str

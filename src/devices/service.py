@@ -8,7 +8,7 @@ from typing import Any
 import src.devices.repository as repository
 from src.devices.models import Device
 from src.devices.constants import ErrorMessage, DeviceStatus
-from src.devices.schemas import CreateDevice, UpdateDevice
+from src.devices.schemas import CreateDevice, UpdateDevice, ActivateDeviceResponse
 from src.auth.security import (
     generate_activation_code, 
     create_device_tokens,
@@ -16,6 +16,7 @@ from src.auth.security import (
     hash_refresh_token,
     verify_refresh_token,
 )
+from src.auth.constants import ErrorMessage as AuthErrorMessage
 from src.config import get_settings
 
 settings = get_settings()
@@ -62,7 +63,9 @@ async def add_device(
 
     if device:
         await db.commit()
-        return device_activation_data.get("activation_code")
+        return ActivateDeviceResponse(
+            device_activation_code=device_activation_data.get("activation_code")
+        )
 
 def _get_activation_code() -> dict[str, Any]:
 
@@ -174,7 +177,9 @@ async def get_new_activation_code(
 
     await db.commit()
 
-    return device_activation_data.get("activation_code")
+    return ActivateDeviceResponse(
+        device_activation_code=device_activation_data.get("activation_code")
+    )
 
 async def refresh_credentials(
     db: AsyncSession,
@@ -184,7 +189,7 @@ async def refresh_credentials(
     if payload is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="ba3be3i fi sidi 3mor"
+            detail=AuthErrorMessage.INVALID_TOKEN
         )
 
     device_id = payload.get("sub")
@@ -192,7 +197,7 @@ async def refresh_credentials(
     if not verify_refresh_token(refresh_token, device.refresh_token_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="5al3in pharmacie"
+            detail=AuthErrorMessage.INVALID_TOKEN
         )
 
     credentials = create_device_tokens(device.id)
@@ -220,3 +225,31 @@ async def _rotate_refresh_token(
     )
 
     await db.commit()
+
+
+async def update_device(
+    db: AsyncSession,
+    device_id: int,
+    device_data: UpdateDevice
+) -> None:
+
+    device = await get_device(db, device_id)
+
+    if device_data.name:
+        device.name = device_data.name
+
+    if device_data.enabled != None:
+        if device.status == DeviceStatus.PENDING.value:
+            raise HTTPException(
+                detail=ErrorMessage.CANNOT_CHANGE_PENDING_STATUS,
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+        device.status = (
+            DeviceStatus.ACTIVE.value
+            if device_data.enabled 
+            else DeviceStatus.DISABLED.value
+        )
+
+    await db.commit()
+
+    return device

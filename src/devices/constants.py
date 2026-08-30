@@ -13,3 +13,4 @@ class ErrorMessage:
     WRONG_ACTIVATION_CODE = "The provided activation code is incorrect."
     EXPIRED_ACTIVATION_CODE = "This activation code has expired."
     DEVICE_ALREADY_ACTIVE = "This device is already active."
+    CANNOT_CHANGE_PENDING_STATUS = "Cannot change status of pending device."

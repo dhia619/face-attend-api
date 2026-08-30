@@ -57,22 +57,17 @@ async def get_device(
 
 @device_router.post(
     "", 
-    status_code=status.HTTP_201_CREATED
+    status_code=status.HTTP_201_CREATED,
+    response_model=ActivateDeviceResponse
 )
 async def create_device(
     device_data: CreateDevice,
     session: AsyncSession = Depends(get_db),
     user: User = Depends(require_permission(PermissionCode.DEVICES_WRITE))
 ):
-    device_activation_code = await service.add_device(
+    return await service.add_device(
         db=session,
         device_data=device_data
-    )
-
-    return JSONResponse(
-        content={
-            "device_activation_code": device_activation_code
-        }
     )
 
 
@@ -98,16 +93,30 @@ async def activate_device(
         activation_code=activate_device.activation_code
     )
 
-@device_router.patch("/{device_id}/activation-code")
+@device_router.patch(
+    "/{device_id}/activation-code",
+    response_model=ActivateDeviceResponse
+)
 async def regenerate_device_activation_code(
     device_id: int,
     session: AsyncSession = Depends(get_db),
     user: User = Depends(require_permission(PermissionCode.DEVICES_WRITE))
 ):
 
-    device_activation_code = await service.get_new_activation_code(session, device_id)
-    return JSONResponse(
-        content={
-            "device_activation_code": device_activation_code
-        }
+    return await service.get_new_activation_code(session, device_id)
+
+@device_router.put(
+    "/{device_id}", 
+    response_model=DeviceRead, 
+)
+async def update_device(
+    device_id: int,
+    device_data: UpdateDevice,
+    session: AsyncSession = Depends(get_db),
+    user: User = Depends(require_permission(PermissionCode.DEPARTMENT_WRITE))
+):
+    return await service.update_device(
+        db=session,
+        device_id=device_id,
+        device_data=device_data
     )
