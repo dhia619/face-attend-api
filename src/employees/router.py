@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database import get_db
@@ -7,15 +7,24 @@ import src.employees.service as service
 from src.users.models import User
 from src.rbac.dependencies import require_permission
 from src.rbac.constants import PermissionCode
+from src.config import get_settings
+
+settings = get_settings()
 
 employee_router = APIRouter()
 
-@employee_router.get("", response_model=list[EmployeeRead])
+@employee_router.get("", response_model=ListEmployeesResponse)
 async def list_employees(
+    page: int = Query(1),
+    page_size: int = Query(settings.PAGINATION_PAGE_SIZE),
     session: AsyncSession = Depends(get_db),
     user: User = Depends(require_permission(PermissionCode.EMPLOYEES_READ))
 ):
-    return await service.get_employees(db=session)
+    return await service.get_employees(
+        db=session,
+        page=page,
+        page_size=page_size
+    )
 
 
 @employee_router.get("/{employee_id}", response_model=EmployeeRead)

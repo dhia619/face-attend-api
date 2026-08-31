@@ -3,6 +3,7 @@ from sqlalchemy import select, delete
 
 from src.devices.models import Device
 from src.devices.schemas import UpdateDevice
+from src.shared.pagination import get_page_offset
 
 async def get_device_by_id(
     db: AsyncSession,
@@ -20,10 +21,19 @@ async def get_device_by_name(
     return result.scalar_one_or_none()
 
 async def get_devices(
-    db: AsyncSession
+    db: AsyncSession,
+    page: int,
+    page_size: int,
+    limit: int | None = None,
+    
 ) -> list[Device]:
     
-    result = await db.execute(select(Device))
+    result = await db.execute(
+        select(Device)
+        .order_by(Device.id)
+        .offset(get_page_offset(page, page_size))
+        .limit(limit if limit is None else page_size + 1)
+    )
     return list(result.scalars().all())
 
 async def add_device(

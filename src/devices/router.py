@@ -1,5 +1,4 @@
-from fastapi import APIRouter, Depends, status
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, Depends, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database import get_db
@@ -11,9 +10,11 @@ from src.rbac.dependencies import require_permission
 from src.rbac.constants import PermissionCode
 from src.auth.schemas import TokenResponse
 from src.recognition.dependencies import get_current_kiosk_device
+from src.config import get_settings
+
+settings = get_settings()
 
 device_router = APIRouter()
-
 
 @device_router.get(
     "/me",
@@ -24,7 +25,6 @@ async def get_current_device(
 ):
     """
     Called by kiosk on startup to get its own info.
-    Uses device JWT — no admin auth needed.
     """
     return device
 
@@ -38,12 +38,18 @@ async def refresh_device_credentials(
         refresh_token=payload.refresh_token
     )
 
-@device_router.get("", response_model=list[DeviceRead])
+@device_router.get("", response_model=ListDevicesResponse)
 async def list_devices(
+    page: int = Query(1),
+    page_size: int = Query(settings.PAGINATION_PAGE_SIZE),
     session: AsyncSession = Depends(get_db),
     user: User = Depends(require_permission(PermissionCode.DEVICES_READ))
 ):
-    return await service.get_devices(db=session)
+    return await service.get_devices(
+        db=session,
+        page=page,
+        page_size=page_size
+    )
 
 
 @device_router.get("/{device_id}", response_model=DeviceRead)

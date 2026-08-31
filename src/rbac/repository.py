@@ -2,6 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete
 
 from src.rbac.models import Role, Permission, RolePermission
+from src.shared.pagination import get_page_offset
 
 async def get_role_permissions(
     db: AsyncSession,
@@ -75,11 +76,19 @@ async def get_role_by_id(
 
     return await db.get(Role, role_id)
 
-async def get_roles(
-    db: AsyncSession 
+async def list_roles(
+    db: AsyncSession,
+    page: int,
+    page_size: int,
+    limit: int | None = None
 ) -> list[Role]:
 
-    result = await db.execute(select(Role))
+    result = await db.execute(
+        select(Role)
+        .order_by(Role.id)
+        .offset(get_page_offset(page, page_size))
+        .limit(limit if limit is not None else page_size + 1)
+    )
     return list(result.scalars().all())
 
 async def get_permissions(
@@ -121,3 +130,15 @@ async def remove_permissions_from_role(
             RolePermission.permission_id.in_(permission_ids),
         )
     )
+
+
+async def get_all_roles(
+    db: AsyncSession
+) -> list[Role]:
+
+    results = await db.execute(
+        select(Role)
+        .order_by(Role.id)
+    )
+
+    return list(results.scalars().all())

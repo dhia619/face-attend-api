@@ -3,6 +3,7 @@ from sqlalchemy import select, delete
 
 from src.users.models import User
 from src.users.schemas import UserUpdate
+from src.shared.pagination import get_page_offset
 
 async def get_user_by_email(db: AsyncSession, email: str) -> User | None:
     result = await db.execute(select(User).where(User.email == email))
@@ -42,7 +43,15 @@ async def update_user(
 
 async def get_users(
     db: AsyncSession,
+    page: int,
+    page_size: int,
+    limit: int | None = None
 ) -> list[User]:
 
-    result = await db.execute(select(User))
+    result = await db.execute(
+        select(User).
+        order_by(User.id).
+        offset(get_page_offset(page, page_size)).
+        limit(limit if limit is not None else page_size)
+    )
     return list(result.scalars().all())

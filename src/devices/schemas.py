@@ -25,3 +25,9 @@ class UpdateDevice(BaseModel):
 
 class ActivateDeviceResponse(BaseModel):
     device_activation_code: str
+
+class ListDevicesResponse(BaseModel):
+    devices: list[DeviceRead]
+    page: int
+    page_size: int
+    has_next: bool

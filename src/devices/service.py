@@ -8,7 +8,11 @@ from typing import Any
 import src.devices.repository as repository
 from src.devices.models import Device
 from src.devices.constants import ErrorMessage, DeviceStatus
-from src.devices.schemas import CreateDevice, UpdateDevice, ActivateDeviceResponse
+from src.devices.schemas import (
+    CreateDevice, 
+    UpdateDevice, 
+    ActivateDeviceResponse,
+)
 from src.auth.security import (
     generate_activation_code, 
     create_device_tokens,
@@ -81,10 +85,23 @@ def _get_activation_code() -> dict[str, Any]:
     }
 
 async def get_devices(
-    db: AsyncSession  
-) -> list[Device]:
+    db: AsyncSession,
+    page: int,
+    page_size: int
+) -> dict[str, Any]:
 
-    return await repository.get_devices(db)
+    devices = await repository.get_devices(
+        db=db,
+        page=page,
+        page_size=page_size,
+        limit=page_size + 1
+    )
+    return {
+        "devices": devices[:page_size],
+        "page": page,
+        "page_size": page_size,
+        "has_next": len(devices) > page_size
+    }
 
 async def get_device(
     db: AsyncSession,

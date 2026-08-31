@@ -3,13 +3,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi.exceptions import HTTPException
 from fastapi import status
 
+from typing import Any
+
 from src.auth.security import hash_secret, verify_secret
-from src.users.schemas import UserCreate, UserUpdate, ChangePassword
+from src.users.schemas import UserCreate, UserUpdate, ChangePassword, ListUsersResponse
 from src.users.constants import ErrorMessage as UserErrorMessage
 from src.users.models import User
 from src.users import repository
 from src.employees.constants import ErrorMessage as EmployeeErrorMessage
 from src.rbac.constants import RoleName
+from src.config import get_settings
+
+settings = get_settings()
 
 async def register_user(
     db: AsyncSession,
@@ -54,10 +59,24 @@ async def get_user_by_id(
     return user  
 
 async def get_users(
-    db: AsyncSession
-) -> list[User]:
+    db: AsyncSession,
+    page: int = 1,
+    page_size: int = settings.PAGINATION_PAGE_SIZE
+) -> dict[str, Any]:
 
-    return await repository.get_users(db)
+    users = await repository.get_users(
+        db,
+        page=page,
+        page_size=page_size,
+        limit=page_size + 1
+    )
+
+    return {
+        "users": users[:page_size],
+        "page": page,
+        "page_size": page_size,
+        "has_next": len(users) > page_size
+    }
 
 async def update_user(
     db: AsyncSession, 

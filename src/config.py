@@ -34,6 +34,8 @@ class Settings(BaseSettings):
 
     KIOSK_REFRESH_TOKEN_EXPIRE_DAYS: int
     KIOSK_ACTIVATION_CODE_EXPIRE_MINUTES: int
+
+    PAGINATION_PAGE_SIZE: int
     
     class Config:
         env_file = ".env"

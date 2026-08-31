@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database import get_db
@@ -8,15 +8,24 @@ from src.users.models import User
 from src.rbac.dependencies import require_permission
 from src.rbac.constants import PermissionCode
 from src.dependencies import get_current_user
+from src.config import get_settings
+
+settings = get_settings()
 
 user_router = APIRouter()
 
-@user_router.get("", response_model=list[UserRead])
+@user_router.get("", response_model=ListUsersResponse)
 async def list_users(
+    page: int = Query(1),
+    page_size: int = Query(settings.PAGINATION_PAGE_SIZE),
     session: AsyncSession = Depends(get_db),
     user: User = Depends(require_permission(PermissionCode.USERS_READ))
 ):
-    return await service.get_users(db=session)
+    return await service.get_users(
+        db=session,
+        page=page,
+        page_size=page_size
+    )
 
 
 @user_router.get("/{user_id}", response_model=UserRead)

@@ -5,6 +5,7 @@ from typing import Any
 
 from src.employees.models import Employee, FaceEmbedding
 from src.employees.schemas import UpdateEmployee
+from src.shared.pagination import get_page_offset
 
 async def get_employee_by_email(
     db: AsyncSession,
@@ -22,13 +23,15 @@ async def get_employee_by_id(
 async def get_employees(
     db: AsyncSession,
     page: int,
-    page_size: int
+    page_size: int,
+    limit: int | None = None,
 ) -> list[Employee]:
+    fetch_limit = limit if limit is not None else page_size
     result = await db.execute(
         select(Employee)
         .order_by(Employee.id)
-        .offset((page-1)*page_size)
-        .limit(page_size)
+        .offset(get_page_offset(page, page_size))
+        .limit(fetch_limit)
     )
     return list(result.scalars().all())
 

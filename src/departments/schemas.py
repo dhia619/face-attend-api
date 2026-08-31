@@ -14,3 +14,9 @@ class CreateDepartment(BaseModel):
         min_length=2,
         description= "Department name"
     )
+
+class ListDepartmentsResponse(BaseModel):
+    departments: list[DepartmentRead]
+    page: int
+    page_size: int
+    has_next: bool

@@ -2,10 +2,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from fastapi import HTTPException, status
 
+from typing import Any
+
 import src.rbac.repository as repository
 from src.rbac.models import Role, RolePermission, Permission
 from src.rbac.constants import ErrorMessage
 from src.rbac.schemas import UpdateRole, CreateRole
+from src.config import get_settings
+
+settings = get_settings()
 
 async def add_role(
     db: AsyncSession,
@@ -163,10 +168,25 @@ async def get_role_by_id(
         )
     return role
 
-async def get_roles(
-    db: AsyncSession, 
-) -> list[Role]:
-    return await repository.get_roles(db=db)
+async def list_roles(
+    db: AsyncSession,
+    page: int = 1,
+    page_size: int = settings.PAGINATION_PAGE_SIZE
+) -> dict[str, Any]:
+    """ Retrives roles with pagination. """
+    roles = await repository.list_roles(
+        db=db,
+        page=page,
+        page_size=page_size,
+        limit=page_size + 1
+    )
+    return {
+        "roles": roles[:page_size],
+        "page": page,
+        "page_size": page_size,
+        "has_next": len(roles) > page_size
+    }
+
 
 async def get_role_permissions(
     db: AsyncSession,
@@ -191,3 +211,9 @@ async def get_permission_by_id(
             detail=ErrorMessage.PERMISSION_NOT_FOUND
         )
     return permission
+
+
+async def get_all_roles(
+    db: AsyncSession
+) -> list[Role]:
+    return await repository.get_all_roles(db)

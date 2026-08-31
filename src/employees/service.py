@@ -4,11 +4,20 @@ from sqlalchemy.exc import IntegrityError
 from fastapi.exceptions import HTTPException
 from fastapi import status
 
-from src.employees.schemas import CreateEmployee, UpdateEmployee, CreateEmbedding
+from typing import Any
+
+from src.employees.schemas import (
+    CreateEmployee, 
+    UpdateEmployee, 
+    CreateEmbedding, 
+)
 from src.employees.constants import ErrorMessage
 from src.employees.models import Employee, FaceEmbedding
 import src.employees.repository as repository
 from src.deepface.client import get_face_embedding
+from src.config import get_settings
+
+settings = get_settings()
 
 async def register_employee(
     db: AsyncSession,
@@ -61,14 +70,22 @@ async def get_employee_by_id(
 async def get_employees(
     db: AsyncSession, 
     page: int = 1,
-    page_size: int = 25
-) -> list[Employee]:
+    page_size: int = settings.PAGINATION_PAGE_SIZE
+) -> dict[str, Any]:
 
-    return await repository.get_employees(
+    employees = await repository.get_employees(
         db=db,
         page=page,
-        page_size=page_size
+        page_size=page_size,
+        limit=page_size + 1,
     )
+
+    return {
+        "employees": employees[:page_size],
+        "page": page,
+        "page_size": page_size,
+        "has_next": len(employees) > page_size,
+    }
 
 async def update_employee(
     db: AsyncSession, 

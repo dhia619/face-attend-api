@@ -1,6 +1,6 @@
 from datetime import date
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
 class CreateEmployee(BaseModel):
@@ -108,6 +108,8 @@ class EmployeeRead(BaseModel):
     hire_date: date | None = Field(
         default=None,
     )
+    
+    model_config = ConfigDict(from_attributes=True)
 
 
 class CreateEmbedding(BaseModel):
@@ -116,3 +118,9 @@ class CreateEmbedding(BaseModel):
         min_length=1,
         description="Employee face image in base64 format",
     )
+
+class ListEmployeesResponse(BaseModel):
+    employees: list[EmployeeRead]
+    page: int
+    page_size: int
+    has_next: bool

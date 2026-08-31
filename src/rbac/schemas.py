@@ -24,3 +24,9 @@ class RolePermissionRead(BaseModel):
 
 class AssignPermissions(BaseModel):
     permission_ids: list[int]
+
+class ListRolesResponse(BaseModel):
+    roles: list[RoleRead]
+    page: int
+    page_size: int
+    has_next: bool

@@ -2,10 +2,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from fastapi import HTTPException, status
 
+from typing import Any
+
 import src.departments.repository as repository
 from src.departments.models import Department
 from src.departments.constants import ErrorMessage
 from src.departments.schemas import CreateDepartment
+from src.config import get_settings
+
+settings = get_settings()
 
 async def add_department(
     db: AsyncSession,
@@ -38,11 +43,29 @@ async def add_department(
         await db.commit()
         return department
 
-async def get_departments(
-    db: AsyncSession  
-) -> list[Department]:
+async def list_departments(
+    db: AsyncSession,
+    page: int = 1,
+    page_size: int = settings.PAGINATION_PAGE_SIZE
+) -> dict[str, Any]:
+    """ Retrieves departments with pagination. """
+    departments = await repository.list_departments(
+        db=db,
+        page=page,
+        page_size=page_size,
+        limit=page_size + 1,
+    )
 
-    return await repository.get_departments(db)
+    return {
+        "departments": departments[:page_size],
+        "page": page,
+        "page_size": page_size,
+        "has_next": len(departments) > page_size
+    }
+
+async def get_all_departments(db: AsyncSession) -> list[Department]:
+    """ Retrieves all departments without pagination. """
+    return await repository.get_all_departments(db)
 
 async def get_department(
     db: AsyncSession,
