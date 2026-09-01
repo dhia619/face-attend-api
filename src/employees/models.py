@@ -1,4 +1,4 @@
-from sqlalchemy import Column, DateTime, Date, ForeignKey, Integer, String, func
+from sqlalchemy import Column, DateTime, Date, ForeignKey, Integer, String, Boolean, func
 from sqlalchemy.orm import relationship
 from pgvector.sqlalchemy import Vector
 
@@ -18,8 +18,10 @@ class Employee(SQLAlchemyBase):
     hire_date = Column(Date)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now())
+    is_active = Column(Boolean, nullable=False, default=True)
 
     face_embedding = relationship("FaceEmbedding", back_populates="employee", uselist=False, cascade="all, delete-orphan")
+    department = relationship("Department")
 
 class FaceEmbedding(SQLAlchemyBase):
     __tablename__ = "face_embedding"

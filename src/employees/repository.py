@@ -1,4 +1,5 @@
 from sqlalchemy import select, delete
+from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from typing import Any
@@ -117,3 +118,17 @@ async def find_closest_employee(
         "employee": employee,
         "distance": actual_distance
     }
+
+async def get_all_active_employees(
+    db: AsyncSession,
+    department_id: int | None = None
+) -> list[Employee]:
+    query = select(Employee).where(Employee.is_active == True).options(
+        selectinload(Employee.department)
+    )
+
+    if department_id:
+        query = query.where(Employee.department_id == department_id)
+
+    result = await db.execute(query)
+    return list(result.scalars().all())

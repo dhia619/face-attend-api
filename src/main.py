@@ -13,6 +13,7 @@ from src.rbac.router import rbac_router
 from src.departments.router import department_router
 from src.devices.router import device_router
 from src.recognition.router import recognition_router
+from src.attendance.router import attendance_router
 from src.core.logging import setup_logging
 from src.core.exception_handlers import VALIDATION_MESSAGES
 
@@ -104,4 +105,10 @@ app.include_router(
     router=user_router,
     prefix=f"{settings.BASE_API_PATH}/users",
     tags=["Users"]
+)
+
+app.include_router(
+    router=attendance_router,
+    prefix=f"{settings.BASE_API_PATH}/attendance",
+    tags=["Attendance"]
 )
