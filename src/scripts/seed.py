@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from datetime import time
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -7,10 +8,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.auth.security import hash_secret
 from src.config import get_settings
 from src.database import db_session, engine
+from src.departments.models import Department
 from src.users.models import User
 from src.rbac.models import Role, Permission, RolePermission
 from src.rbac.constants import PermissionCode, RoleName
 from src.core.logging import setup_logging
+from src.shifts.models import Shift
 
 setup_logging()
 logger = logging.getLogger(__name__)
@@ -31,6 +34,8 @@ PERMISSIONS = (
     PermissionCode.DEVICES_READ,
     PermissionCode.DEVICES_WRITE,
     PermissionCode.REPORTS_READ,
+    PermissionCode.SHIFTS_READ,
+    PermissionCode.SHIFTS_WRITE
 )
 
 ROLES = [
@@ -144,12 +149,22 @@ async def seed_super_admin(db: AsyncSession, roles: dict[str, Role]) -> None:
     logger.info("Super admin created successfully.")
 
 
+async def seed_default_shift(db: AsyncSession):
+    result = await db.execute(select(Shift).where(Shift.department_id.is_(None)))
+    if result.scalar_one_or_none():
+        logger.info("Default shift exists, skipping.")
+        return
+    db.add(Shift(name="Default", department_id=None, start_time=time(9, 0)))
+    logger.info("Default shift created successfully.")
+
+
 async def main():
     try:
         async with db_session() as db:
             permissions = await seed_permissions(db)
             roles = await seed_roles(db, permissions)
             await seed_super_admin(db, roles)
+            await seed_default_shift(db)
             await db.commit()
             logger.info("Seeding completed successfully.")
     except Exception as e:

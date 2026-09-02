@@ -5,6 +5,7 @@ from sqlalchemy import select, func
 
 from src.attendance.models import AttendanceRecord
 from src.attendance.repository import *
+from src.attendance.constants import CheckType
 
 async def add_attendance_record(
     db: AsyncSession,
@@ -57,14 +58,13 @@ async def get_recent_record(
     )
     return result.scalar_one_or_none()
 
-
 async def get_last_records_today_bulk(
     db: AsyncSession,
     employee_ids: list[int]
 ) -> dict[int, AttendanceRecord]:
     """
-    Returns the latest attendance record today, per employee,
-    as a dict keyed by employee_id.
+    Most recent record today per employee.
+    Used for current in/out status.
     """
     if not employee_ids:
         return {}
@@ -81,10 +81,41 @@ async def get_last_records_today_bulk(
     )
     records = result.scalars().all()
 
-    # keep only the FIRST (=latest, since ordered desc) record per employee
     latest_per_employee: dict[int, AttendanceRecord] = {}
     for record in records:
         if record.employee_id not in latest_per_employee:
             latest_per_employee[record.employee_id] = record
 
     return latest_per_employee
+
+
+async def get_first_checkins_today_bulk(
+    db: AsyncSession,
+    employee_ids: list[int]
+) -> dict[int, AttendanceRecord]:
+    """
+    Earliest check_in today per employee.
+    Used for lateness calculation.
+    """
+    if not employee_ids:
+        return {}
+
+    today = date.today()
+
+    result = await db.execute(
+        select(AttendanceRecord)
+        .where(
+            AttendanceRecord.employee_id.in_(employee_ids),
+            AttendanceRecord.check_type == CheckType.CHECK_IN.value,
+            func.date(AttendanceRecord.timestamp) == today
+        )
+        .order_by(AttendanceRecord.employee_id, AttendanceRecord.timestamp.asc())
+    )
+    records = result.scalars().all()
+
+    first_per_employee: dict[int, AttendanceRecord] = {}
+    for record in records:
+        if record.employee_id not in first_per_employee:
+            first_per_employee[record.employee_id] = record
+
+    return first_per_employee

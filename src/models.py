@@ -4,3 +4,4 @@ from src.departments.models import Department
 from src.employees.models import Employee, FaceEmbedding
 from src.devices.models import Device
 from src.attendance.models import AttendanceRecord
+from src.shifts.models import Shift

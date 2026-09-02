@@ -93,7 +93,7 @@ async def find_closest_employee(
     db: AsyncSession,
     embedding: list[float],
     distance_threshold: float,
-) -> dict[str, Any]:
+) -> dict[str, Any] | None:
 
     distance = FaceEmbedding.embeddings.cosine_distance(embedding).label("distance")
 
@@ -111,6 +111,9 @@ async def find_closest_employee(
     result = await db.execute(stmt)
 
     row = result.one_or_none()
+    
+    if row is None:
+        return None
 
     employee, actual_distance = row
 

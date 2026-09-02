@@ -50,6 +50,17 @@ async def process_recognition(
         distance_threshold=settings.DISTANCE_THRESHOLD
     )
 
+    if recognition_data is None:
+        return RecognitionResponse(
+            employee_id=None,
+            full_name=None,
+            email=None,
+            check_type=None,
+            confidence=None,
+            timestamp=None,
+            already_recorded=False
+        )
+
     employee: Employee = recognition_data.get("employee")
     confidence = 1 - recognition_data.get("distance")
     recent = await attendance_repository.get_recent_record(
