@@ -14,6 +14,8 @@ class PermissionCode:
     DEVICES_READ = "devices:read"
     DEVICES_WRITE = "devices:write"
     REPORTS_READ = "reports:read"
+    SHIFTS_READ = "shifts:read"
+    SHIFTS_WRITE = "shifts:write"
 
 PERMISSION_META = {
     PermissionCode.USERS_READ:       "View admin users",
@@ -29,6 +31,8 @@ PERMISSION_META = {
     PermissionCode.DEVICES_READ:     "View devices",
     PermissionCode.DEVICES_WRITE:    "Register and edit devices",
     PermissionCode.REPORTS_READ:     "View reports and dashboard",
+    PermissionCode.SHIFTS_READ:      "View shifts",
+    PermissionCode.SHIFTS_WRITE:     "Create and edit shifts"
 }
 
 class RoleName:

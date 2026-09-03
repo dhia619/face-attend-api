@@ -26,3 +26,15 @@ async def get_today_attendance(
     user: User = Depends(get_current_user)
 ):
     return await service.get_today_attendance(session, department_id)
+
+
+@attendance_router.get(
+    "",
+    response_model=ListAttendanceRecordsResponse,
+    dependencies=[Depends(require_permission(PermissionCode.ATTENDANCE_READ))]
+)
+async def list_attendance_records(
+    filters: AttendanceFilterParams = Query(),
+    session: AsyncSession = Depends(get_db),
+):
+    return await service.list_attendance_records(db=session, filters=filters)

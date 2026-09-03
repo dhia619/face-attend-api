@@ -5,7 +5,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.attendance.repository import (
     get_first_checkins_today_bulk,
-    get_last_records_today_bulk
+    get_last_records_today_bulk,
+    list_records
 )
 from src.employees.repository import get_all_active_employees
 from src.shifts.repository import (
@@ -17,10 +18,7 @@ from src.attendance.constants import (
     AttendanceStatus,
     CheckType
 )
-from src.attendance.schemas import (
-    TodayAttendanceResponse, 
-    EmployeeTodayStatus
-)
+from src.attendance.schemas import *
 from src.employees.models import Employee
 
 logger = logging.getLogger(__name__)
@@ -116,4 +114,33 @@ def _build_employee_status(
         last_seen_at=last_seen,
         is_late=is_late,
         late_minutes=late_minutes
+    )
+
+async def list_attendance_records(
+    db: AsyncSession,
+    filters: AttendanceFilterParams,
+) -> ListAttendanceRecordsResponse:
+
+    records = await list_records(db, filters)
+
+    record_reads = [
+        AttendanceRecordRead(
+            id=r.id,
+            employee_id=r.employee_id,
+            employee_name=r.employee.full_name,
+            department_name=r.employee.department.name if r.employee.department else None,
+            device_id=r.device_id,
+            device_name=r.device.name,
+            check_type=r.check_type,
+            confidence=r.confidence,
+            timestamp=r.timestamp,
+        )
+        for r in records[:filters.page_size]
+    ]
+
+    return ListAttendanceRecordsResponse(
+        records=record_reads,
+        page=filters.page,
+        page_size=filters.page_size,
+        has_next=len(records) > filters.page_size
     )

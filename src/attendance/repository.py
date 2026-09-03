@@ -1,11 +1,15 @@
 from datetime import datetime, timedelta, date, timezone
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
+from sqlalchemy import select, func, or_
+from sqlalchemy.orm import selectinload
 
 from src.attendance.models import AttendanceRecord
 from src.attendance.repository import *
 from src.attendance.constants import CheckType
+from src.attendance.schemas import AttendanceFilterParams
+from src.employees.models import Employee
+from src.shared.pagination import get_page_offset
 
 async def add_attendance_record(
     db: AsyncSession,
@@ -119,3 +123,64 @@ async def get_first_checkins_today_bulk(
             first_per_employee[record.employee_id] = record
 
     return first_per_employee
+
+
+async def list_records(
+    db: AsyncSession,
+    filters: AttendanceFilterParams
+) -> list[AttendanceRecord]:
+
+    query = (
+        select(AttendanceRecord)
+        .join(Employee, AttendanceRecord.employee_id == Employee.id)
+        .options(
+            selectinload(AttendanceRecord.employee).selectinload(Employee.department),
+            selectinload(AttendanceRecord.device),
+        )
+        .order_by(AttendanceRecord.timestamp.desc())
+    )
+
+    if filters.employee_id:
+        query = query.where(
+            AttendanceRecord.employee_id == filters.employee_id
+        )
+
+    if filters.employee_search:
+        search = f"%{filters.employee_search.strip()}%"
+
+        query = query.where(
+            or_(
+                Employee.full_name.ilike(search),
+                Employee.email.ilike(search),
+            )
+        )
+
+    if filters.department_id:
+        query = query.where(
+            Employee.department_id == filters.department_id
+        )
+
+    if filters.check_type:
+        query = query.where(
+            AttendanceRecord.check_type == filters.check_type
+        )
+
+    if filters.date_from:
+        query = query.where(
+            func.date(AttendanceRecord.timestamp) >= filters.date_from
+        )
+
+    if filters.date_to:
+        query = query.where(
+            func.date(AttendanceRecord.timestamp) <= filters.date_to
+        )
+
+    query = (
+        query
+        .offset(get_page_offset(filters.page, filters.page_size))
+        .limit(filters.page_size + 1)
+    )
+
+    result = await db.execute(query)
+
+    return list(result.scalars().all())
