@@ -7,4 +7,4 @@ class CheckType(Enum):
 class AttendanceStatus(Enum):
     IN = "in"
     OUT = "out"
-    NOT_ARRIVED = "not_arrived"
+    NOT_ARRIVED = "not_arrived_yet"
