@@ -90,7 +90,8 @@ async def process_recognition(
         employee_id=employee.id,
         check_type=check_type,
         timestamp=datetime.now(timezone.utc),
-        confidence=confidence
+        confidence=confidence,
+        device_id=payload.device_id
     )
 
     record = await attendance_repository.add_attendance_record(
