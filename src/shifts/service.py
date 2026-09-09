@@ -80,4 +80,16 @@ async def list_shifts(
     page_size: int = settings.PAGINATION_PAGE_SIZE
 ) -> dict[str, Any]:
 
-    return await repository.list_shifts(db, page, page_size)
+    shifts = await repository.list_shifts(
+        db=db,
+        page=page,
+        page_size=page_size,
+        limit=page_size + 1,
+    )
+
+    return {
+        "shifts": shifts[:page_size],
+        "page": page,
+        "page_size": page_size,
+        "has_next": len(shifts) > page_size,
+    }

@@ -7,6 +7,7 @@ from src.users.models import User
 from src.rbac.dependencies import require_permission
 from src.rbac.constants import PermissionCode
 from src.shifts.schemas import (
+    ListShiftsResponse,
     ShiftRead,
     ShiftCreate,
     ShiftUpdate
@@ -20,7 +21,7 @@ shifts_router = APIRouter()
 
 @shifts_router.get(
     "", 
-    response_model=list[ShiftRead],
+    response_model=ListShiftsResponse,
     dependencies=[Depends(require_permission(PermissionCode.SHIFTS_READ))]
 )
 async def list_shifts(

@@ -19,3 +19,9 @@ class ShiftUpdate(BaseModel):
     department_id: int | None
     start_time: time | None
     end_time: time | None
+
+class ListShiftsResponse(BaseModel):
+    shifts: list[ShiftRead]
+    page: int
+    page_size: int
+    has_next: bool
