@@ -154,7 +154,12 @@ async def seed_default_shift(db: AsyncSession):
     if result.scalar_one_or_none():
         logger.info("Default shift exists, skipping.")
         return
-    db.add(Shift(name="Default", department_id=None, start_time=time(9, 0)))
+    db.add(Shift(
+        name="Default", 
+        department_id=None, 
+        start_time=time(9, 0), 
+        end_time=time(17, 0)
+    ))
     logger.info("Default shift created successfully.")
 
 

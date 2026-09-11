@@ -10,15 +10,14 @@ class ShiftRead(BaseModel):
 
 class ShiftCreate(BaseModel):
     name: str
-    department_id: int | None
+    department_id: int
     start_time: time
-    end_time: time | None
+    end_time: time
 
 class ShiftUpdate(BaseModel):
-    name: str | None
-    department_id: int | None
-    start_time: time | None
-    end_time: time | None
+    name: str | None = None
+    start_time: time | None = None
+    end_time: time | None = None
 
 class ListShiftsResponse(BaseModel):
     shifts: list[ShiftRead]

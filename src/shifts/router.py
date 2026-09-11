@@ -57,7 +57,7 @@ async def create_shift(
 ):
     return await service.add_shift(session, payload)
 
-@shifts_router.patch(
+@shifts_router.put(
     "/{shift_id}", 
     response_model=ShiftRead,
     dependencies=[Depends(require_permission(PermissionCode.SHIFTS_WRITE))]

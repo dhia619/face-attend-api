@@ -43,13 +43,19 @@ async def update_shift(
 
     shift = await get_shift_by_id(db, shift_id)
     return await repository.update_shift(db, shift, shift_data)
+
     
 async def delete_shift(
     db: AsyncSession,
     shift_id: int
 ) -> None:
 
-    await get_shift_by_id(db, shift_id)
+    shift = await get_shift_by_id(db, shift_id)
+    if shift.name.lower() == "default":
+        raise HTTPException(
+            detail=ErrorMessage.CANNOT_DELETE_DEFAULT_SHIFT,
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
     if await repository.delete_shift(db, shift_id):
         await db.commit()
 
@@ -67,12 +73,14 @@ async def get_shift_by_id(
         )
     return shift
 
+
 async def get_shift_by_department(
     db: AsyncSession,
     department_id: int
 ) -> Shift:
 
     return await repository.get_shift_by_department(db, department_id)
+
 
 async def list_shifts(
     db: AsyncSession,
