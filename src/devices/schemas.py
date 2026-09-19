@@ -4,6 +4,8 @@ class DeviceRead(BaseModel):
     id: int
     name: str
     status: str
+    type: str
+    rtsp_url: str | None = None
 
 class CreateDevice(BaseModel):
     name: str
