@@ -7,7 +7,7 @@ from typing import Any
 
 import src.devices.repository as repository
 from src.devices.models import Device
-from src.devices.constants import ErrorMessage, DeviceStatus
+from src.devices.constants import *
 from src.devices.schemas import (
     CreateDevice, 
     UpdateDevice, 
@@ -28,48 +28,72 @@ settings = get_settings()
 async def add_device(
     db: AsyncSession,
     device_data: CreateDevice
-) -> str:
+) -> ActivateDeviceResponse | None:
 
     if not device_data.name:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=ErrorMessage.MIISING_DEVICE_NAME
         )
-    
+
     if await repository.get_device_by_name(
         db=db,
         device_name=device_data.name
     ):
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, 
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail=ErrorMessage.DEVICE_EXIST
         )
 
-    while True:
-        device_activation_data = _get_activation_code()
-        if not await repository.get_device_by_activation_code(
-            db=db, 
-            activation_code=device_activation_data.get("activation_code")
-        ):
-            break
+    response = None
 
-    device = Device(
-        name=device_data.name,
-        status=DeviceStatus.PENDING.value,
-        activation_code=device_activation_data.get("activation_code"),
-        activation_expires_at=device_activation_data.get("activation_expires_at")
-    )
+    if device_data.type == DeviceType.KIOSK.value:
+        while True:
+            activation_data = _get_activation_code()
+
+            if not await repository.get_device_by_activation_code(
+                db=db,
+                activation_code=activation_data["activation_code"]
+            ):
+                break
+
+        device = Device(
+            name=device_data.name,
+            type=DeviceType.KIOSK.value,
+            status=DeviceStatus.PENDING.value,
+            activation_code=activation_data["activation_code"],
+            activation_expires_at=activation_data["activation_expires_at"]
+        )
+
+        response = ActivateDeviceResponse(
+            device_activation_code=activation_data["activation_code"]
+        )
+
+    elif device_data.type == DeviceType.IP_CAMERA.value:
+        device = Device(
+            name=device_data.name,
+            type=DeviceType.IP_CAMERA.value,
+            status=DeviceStatus.ACTIVE.value,
+            rtsp_url=device_data.rtsp_url
+        )
+
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=ErrorMessage.DEVICE_TYPE_NOT_SUPPORTED
+        )
 
     device = await repository.add_device(
         db=db,
-        device=device,
+        device=device
     )
 
-    if device:
-        await db.commit()
-        return ActivateDeviceResponse(
-            device_activation_code=device_activation_data.get("activation_code")
-        )
+    if not device:
+        return None
+
+    await db.commit()
+
+    return response
 
 def _get_activation_code() -> dict[str, Any]:
 

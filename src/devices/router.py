@@ -64,7 +64,7 @@ async def get_device(
 @device_router.post(
     "", 
     status_code=status.HTTP_201_CREATED,
-    response_model=ActivateDeviceResponse
+    response_model=ActivateDeviceResponse | None
 )
 async def create_device(
     device_data: CreateDevice,

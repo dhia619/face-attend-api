@@ -7,6 +7,8 @@ class DeviceRead(BaseModel):
 
 class CreateDevice(BaseModel):
     name: str
+    type: str
+    rtsp_url: str | None = None
 
 class ActivateDevice(BaseModel):
     activation_code: str

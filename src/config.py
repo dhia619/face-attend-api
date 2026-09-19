@@ -5,6 +5,7 @@ class Settings(BaseSettings):
     APP_NAME: str
     APP_VERSION: str
 
+    BASE_URL: str
     BASE_API_PATH: str
     ORIGINS: list[str]
 
@@ -36,6 +37,8 @@ class Settings(BaseSettings):
     KIOSK_ACTIVATION_CODE_EXPIRE_MINUTES: int
 
     PAGINATION_PAGE_SIZE: int
+
+    CAMERA_WORKER_API_KEY: str
     
     class Config:
         env_file = ".env"

@@ -1,5 +1,6 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import APIKeyHeader
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -35,3 +36,14 @@ async def get_current_kiosk_device(
             detail=devices_constants.ErrorMessage.DEVICE_NOT_FOUND
         )
     return device
+
+api_key_header = APIKeyHeader(name="X-API-Key")
+
+def verify_camera_worker_api_key(api_key: str = Depends(api_key_header)) -> None:
+    camera_worker_api_key = settings.CAMERA_WORKER_API_KEY
+
+    if api_key != camera_worker_api_key:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=devices_constants.ErrorMessage.INVALID_API_KEY,
+        )

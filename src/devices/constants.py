@@ -5,6 +5,10 @@ class DeviceStatus(Enum):
     PENDING = "pending"
     DISABLED = "disabled"
 
+class DeviceType(Enum):
+    KIOSK = "kiosk"
+    IP_CAMERA = "ip-camera"
+
 class ErrorMessage:
     DEVICE_EXIST = "A device with this name exists."
     DEVICE_NOT_FOUND = "Device not found."
@@ -14,3 +18,5 @@ class ErrorMessage:
     EXPIRED_ACTIVATION_CODE = "This activation code has expired."
     DEVICE_ALREADY_ACTIVE = "This device is already active."
     CANNOT_CHANGE_PENDING_STATUS = "Cannot change status of pending device."
+    DEVICE_TYPE_NOT_SUPPORTED = "This device type is not supported."
+    INVALID_API_KEY = "Invalid API key."
